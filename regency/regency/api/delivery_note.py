@@ -26,6 +26,10 @@ def update_drug_prescription(doc):
             "default_prescription_duration", "default_dosage_form", "default_prescription_dosage", "default_comments"],
             as_dict=True
         )
+        
+        if not medication_details.name:
+            frappe.throw(f"Item: <b>{row.item_code}</b> is not linked to any Medication. Please link item with Medication and try again.")
+        
         dni_items.append(medication_details.name)
 
         if not row.reference_name:
@@ -62,7 +66,7 @@ def update_drug_prescription(doc):
             encounter_doc.append("drug_prescription", new_drug_row)
 
     for drug_row in encounter_doc.drug_prescription:
-        if drug_row.drug_code not in dni_items:
+        if drug_row.prescribe == 1 and drug_row.drug_code not in dni_items:
             dn_rows_to_remove.append(drug_row)
     
     for d_row in dn_rows_to_remove:

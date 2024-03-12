@@ -33,7 +33,9 @@ def get_childs_map():
 
 
 def on_submit(doc, method):
-    if not doc.inpatient_record:
+    if doc.inpatient_record and doc.insurance_subscription:
+        create_sales_order(doc)
+    elif not doc.inpatient_record:
         create_sales_order(doc)
 
 
@@ -42,6 +44,8 @@ def create_sales_order(doc):
         warehouse = "A Block Ground Floor Cash Pharmacy - RMCHQ"
     elif doc.company == "Regency Specialized Polyclinic For Dialysis and Chemotherapy":
         warehouse = "A Block Ground Floor Pharmacy - RSPDC"
+    elif doc.company == "Regency Specialised Polyclinic":
+        warehouse = "Ground Floor Pharmacy - RSP"
     else:
         frappe.throw(
             f"Sales order can not be created because of unkown warehouse to use for company: {doc.company}"
@@ -97,17 +101,7 @@ def get_items_from_encounter(doc, warehouse):
                 "reference_dn": row.get("name"),
             }
             if row.doctype == "Drug Prescription":
-                dosage = ", \n".join(
-                    [
-                        "frequency: " + str(row.get("dosage") or ""),
-                        "period: " + str(row.get("period") or ""),
-                        "dosage_form: " + str(row.get("dosage_form") or ""),
-                        "interval: " + str(row.get("interval") or ""),
-                        "interval_uom: " + str(row.get("interval_uom") or ""),
-                        "Doctor's comment: " + (row.get("comment") or ""),
-                    ]
-                )
-                dosage = ", \n".join(
+                dosage = ", <br>".join(
                     [
                         "frequency: "
                         + str(row.get("dosage") or "No Prescription Dosage"),
@@ -115,6 +109,7 @@ def get_items_from_encounter(doc, warehouse):
                         "dosage_form: " + str(row.get("dosage_form") or ""),
                         "interval: " + str(row.get("interval") or ""),
                         "interval_uom: " + str(row.get("interval_uom") or ""),
+                        "medical_code: " + str(row.get("medical_code") or "No medical code"),
                         "Doctor's comment: "
                         + (row.get("comment") or "Take medication as per dosage."),
                     ]
